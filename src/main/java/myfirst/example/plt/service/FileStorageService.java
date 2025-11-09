@@ -1,6 +1,5 @@
 package myfirst.example.plt.service;
 
-
 import myfirst.example.plt.entity.FileStorage;
 import myfirst.example.plt.entity.enummration.FileStorageEnums;
 import myfirst.example.plt.repository.FileStorageRepository;
@@ -17,6 +16,7 @@ import java.util.Date;
 public class FileStorageService {
 
     private final FileStorageRepository fileStorageRepository;
+
     @Value("${file.upload.folder}")
     private String serverFolderPath;
 
@@ -27,7 +27,7 @@ public class FileStorageService {
         this.hashids = new Hashids();
     }
 
-    public FileStorage save(MultipartFile multipartFile){
+    public FileStorage save(MultipartFile multipartFile) {
         FileStorage fileStorage = new FileStorage();
         fileStorage.setFileName(multipartFile.getOriginalFilename());
         fileStorage.setFileSize(multipartFile.getSize());
@@ -37,39 +37,50 @@ public class FileStorageService {
         fileStorage = fileStorageRepository.save(fileStorage);
 
         Date now = new Date();
+        String path = String.format("%s/upload_files/%d/%d/%d",
+                this.serverFolderPath,
+                1900 + now.getYear(),
+                1 + now.getMonth(),
+                now.getDate());
 
-        String path = String.format("%s/upload_files/%d/%d/%d", this.serverFolderPath,
-                1900 + now.getYear(), 1 + now.getMonth(), now.getDate());
-        File uploadFolder=new File(path);
+        File uploadFolder = new File(path);
 
-        if(!uploadFolder.exists() && uploadFolder.mkdirs()){
-            System.out.println("create uploadfolder");
+        if (!uploadFolder.exists() && uploadFolder.mkdirs()) {
+            System.out.println("Upload papkasi yaratildi: " + uploadFolder.getAbsolutePath());
         }
-         fileStorage.setHasId(hashids.encode(fileStorage.getId()));
-        fileStorage.setUploadFolder(path + "/" + fileStorage.getHasId() + "." + fileStorage.getExtension());
 
+        fileStorage.setHasId(hashids.encode(fileStorage.getId()));
+
+        String pathLocal = String.format("/upload_files/%d/%d/%d/%s.%s",
+                1900 + now.getYear(),
+                1 + now.getMonth(),
+                now.getDate(),
+                fileStorage.getHasId(),
+                fileStorage.getExtension());
+
+        fileStorage.setUploadFolder(pathLocal);
         fileStorageRepository.save(fileStorage);
 
-        uploadFolder = uploadFolder.getAbsoluteFile();
-        File file = new File(uploadFolder, String.format("%s.%s", fileStorage.getHasId(), fileStorage.getExtension()));
-        try{
+        File file = new File(uploadFolder, String.format("%s.%s",
+                fileStorage.getHasId(),
+                fileStorage.getExtension()));
+
+        try {
             multipartFile.transferTo(file);
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
 
         return fileStorage;
     }
 
-    private String getExt(String fileName){
-        String ext = null;
-        if(fileName != null && !fileName.isEmpty()){
+    private String getExt(String fileName) {
+        if (fileName != null && !fileName.isEmpty()) {
             int dot = fileName.lastIndexOf('.');
-            if(dot >0 && dot <= fileName.length() - 2){
-                ext = fileName.substring(dot+1);
+            if (dot > 0 && dot < fileName.length() - 1) {
+                return fileName.substring(dot + 1);
             }
         }
-        return ext;
+        return null;
     }
 }

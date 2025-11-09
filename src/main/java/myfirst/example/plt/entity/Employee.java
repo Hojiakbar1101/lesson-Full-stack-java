@@ -17,10 +17,10 @@ public class Employee implements Serializable {
     private String name;
 
     private String lastName;
+
     @NotNull
     @Column(name = "email", length = 150, unique = true, nullable = false)
     private String email;
-
 
     @ManyToOne
     private Department department;
@@ -61,7 +61,6 @@ public class Employee implements Serializable {
     public String getEmail() {
         return email;
     }
-
 
     public void setEmail(String email) {
         this.email = email;

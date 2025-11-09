@@ -20,7 +20,7 @@ logging:
   level:
     root: INFO
     org.springframework: INFO
-upload:
-  server:
-    folder: /Users/xojiakbar/upload/
 
+file:
+  upload:
+    folder: /Users/xojiakbar/upload
