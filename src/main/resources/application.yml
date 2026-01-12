@@ -15,6 +15,9 @@ spring:
   output:
     ansi:
       enabled: ALWAYS
+  jwt:
+    secret: mySecretKeyJWTTokenGeneralLessonPoolMoneyDonkey2024role
+    expiration: 86400000
 
 logging:
   level:

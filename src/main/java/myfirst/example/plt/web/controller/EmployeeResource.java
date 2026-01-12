@@ -1,4 +1,4 @@
-package myfirst.example.plt.web.Controller;
+package myfirst.example.plt.web.controller;
 
 import myfirst.example.plt.entity.Employee;
 import myfirst.example.plt.service.EmployeService;

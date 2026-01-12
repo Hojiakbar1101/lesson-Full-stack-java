@@ -1,19 +1,20 @@
 package myfirst.example.plt.config;
 
 
+import myfirst.example.plt.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 
 @Configuration
 @EnableWebSecurity
@@ -21,52 +22,56 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
+
     @Bean
-    public SecurityFilterChain
-    securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http
-                .csrf((csrf -> csrf.disable()))
+                .csrf(csrf -> csrf.disable())
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/posts",
-                                "/api/posts/paging",
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/posts", "/api/posts/paging",
                                 "/api/posts/params")
                         .hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST,"/api/posts/**",
-                                "/")
+
+                        .requestMatchers(HttpMethod.POST, "/api/posts/**")
                         .hasRole("ADMIN")
 
-
-                        .requestMatchers(HttpMethod.DELETE, "/api/employeee/")
+                        .requestMatchers(HttpMethod.DELETE, "/api/employee/")
                         .hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/employeees/," +
-                                        "/api/epployee",
-                                "/api/employeee/")
+                        .requestMatchers(HttpMethod.GET, "/api/employees/", "/api/employee/"
+                              )
                         .hasAnyRole("USER", "ADMIN")
+
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults());
-        return http.build();
+
+                        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+                return http.build();
+
+
     }
+
+
     @Bean
-    public UserDetailsService
-    userDetailsService(PasswordEncoder passwordEncoder){
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode("1234"))
-                .roles("ADMIN")
-                .build();
-        UserDetails user = User.builder()
-                .username("user")
-                .password(passwordEncoder.encode("1234"))
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(admin, user);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception{
+        return config.getAuthenticationManager();
     }
+
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder()  {
         return new BCryptPasswordEncoder();
     }
 }
+

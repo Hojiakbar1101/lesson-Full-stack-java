@@ -3,6 +3,7 @@ package myfirst.example.plt.entity;
 import jakarta.persistence.*;
 import org.antlr.v4.runtime.misc.NotNull;
 
+
 import java.io.Serializable;
 import java.util.Set;
 

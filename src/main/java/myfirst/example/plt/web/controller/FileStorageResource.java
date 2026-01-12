@@ -1,4 +1,4 @@
-package myfirst.example.plt.web.Controller;
+package myfirst.example.plt.web.controller;
 
 import myfirst.example.plt.entity.FileStorage;
 import myfirst.example.plt.service.FileStorageService;
